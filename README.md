@@ -178,15 +178,14 @@ Place images under: docs/screenshots/
 - PDF preview
 - Sign-in with Google
 
-Example references:
 <img width="244" height="520" alt="image" src="https://github.com/user-attachments/assets/0885aabd-0cfe-41e6-9144-8d48ae1b431a" />
 <img width="244" height="520" alt="image" src="https://github.com/user-attachments/assets/e70cb483-1918-470b-ac6f-88c7f0771d15" />
 <img width="244" height="520" alt="image" src="https://github.com/user-attachments/assets/5cc613ca-e88d-4890-8869-2cc6cf7c763d" />
-<img width="248" height="529" alt="image" src="https://github.com/user-attachments/assets/df28807e-029d-48e4-b1e0-86a16729fc28" />
-<img width="253" height="541" alt="image" src="https://github.com/user-attachments/assets/6457626b-5cbc-40a3-a6fe-b19891b15ee1" />
-<img width="224" height="476" alt="image" src="https://github.com/user-attachments/assets/e027500f-bb23-4a3d-9ac0-adb04208a292" />
-<img width="270" height="578" alt="image" src="https://github.com/user-attachments/assets/423fb6e6-4c2e-453d-8690-e3641877597a" />
-<img width="300" height="468" alt="image" src="https://github.com/user-attachments/assets/19d15a9a-b3f0-436e-8cfe-a2a6476a2f6d" />
+<img width="244" height="520" alt="image" src="https://github.com/user-attachments/assets/df28807e-029d-48e4-b1e0-86a16729fc28" />
+<img width="244" height="520" alt="image" src="https://github.com/user-attachments/assets/6457626b-5cbc-40a3-a6fe-b19891b15ee1" />
+<img width="244" height="476" alt="image" src="https://github.com/user-attachments/assets/e027500f-bb23-4a3d-9ac0-adb04208a292" />
+<img width="244" height="520" alt="image" src="https://github.com/user-attachments/assets/423fb6e6-4c2e-453d-8690-e3641877597a" />
+<img width="244" height="468" alt="image" src="https://github.com/user-attachments/assets/19d15a9a-b3f0-436e-8cfe-a2a6476a2f6d" />
 
 ---
 
