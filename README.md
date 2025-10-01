@@ -19,7 +19,7 @@ A modern Android app to create, store, sync, share, and manage beautiful digital
   Save locally and sync to Firebase. Works offline; syncs when online.
 
 - 📤 Export as PDF (Interactive)
-  A4 landscape PDF with clickable actions: call, maps, email, Instagram, website.
+  PDF with clickable actions: call, maps, email, Instagram, website.
 
 - 📷 QR Codes
   Generate and scan QR to share/save cards seamlessly.
