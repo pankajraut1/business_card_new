@@ -179,8 +179,7 @@ Place images under: docs/screenshots/
 - Sign-in with Google
 
 Example references:
-![Home](docs/screenshots/home.png)
-![Create](docs/screenshots/create.png)
+<img width="244" height="520" alt="image" src="https://github.com/user-attachments/assets/0885aabd-0cfe-41e6-9144-8d48ae1b431a" />
 
 ---
 
