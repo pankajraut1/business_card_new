@@ -50,7 +50,7 @@ A modern Android app to create, store, sync, share, and manage beautiful digital
 ## 🧾 PDF Generation Notes (HTML → PDF)
 
 - Render the card as HTML in a WebView.
-- Use createPrintDocumentAdapter + PrintManager to generate a PDF (A4 landscape).
+- Use createPrintDocumentAdapter + PrintManager to generate a PDF.
 - Embed clickable links in HTML (tel:, mailto:, https://, geo:) so they are interactive in the PDF.
 
 ---
@@ -161,28 +161,13 @@ This software is proprietary and confidential. All rights reserved.
 By using this application, you agree to the following restrictions:
 - ❌ No copying, distributing, sublicensing, or publishing the source code or binaries.
 - ❌ No modification, reverse engineering, decompiling, or creating derivative works.
-- ❌ No commercial use, resale, or hosting as a service without prior written permission from the owner.
-- ✅ Personal or authorized internal use only, as granted by the owner.
-
-For any licensing inquiries, contact: <your-email>.
+- ❌ No commercial use, resale, or hosting as a service without prior written permission from the ow
 
 ---
 
 ## ©️ Copyright
+Copyright © 2025 Pankaj Raut. All rights reserved.
 
-Copyright © 2023–2025 <Your Name or Company>. All rights reserved.
-The app name, logo, UI designs, and all related assets are trademarks or trade dress of <Your Name or Company>.
-Third‑party libraries remain the property of their respective owners and are used under their licenses.
-
----
-
-## 🧾 Optional Legal Files
-
-- LICENSE.txt — Proprietary terms (same as above).
-- EULA.txt — End User License Agreement (usage restrictions, termination, jurisdiction).
-- NOTICE.txt — Attributions for third-party libraries (e.g., ZXing, Glide).
-
----
 
 ## 🖼️ Screenshots
 
@@ -201,6 +186,6 @@ Example references:
 
 ## 📬 Contact
 
-Owner/Company: <Your Name or Company>
-Email: <your-email>
-Jurisdiction: <Your preferred jurisdiction/state/country>
+Name: Pankaj Raut
+Email: r9pankaj@gmail.com
+
