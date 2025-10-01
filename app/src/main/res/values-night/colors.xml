@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Night mode overrides -->
+    <color name="textTitle">#FFFFFFFF</color>
+    <!-- Keep red vivid in dark mode (avoid pink wash-out) -->
+    <color name="deleteRed">#D50000</color>
+    
+    <!-- Optional: improve dark surfaces (only used if referenced) -->
+    <color name="cardBackground">#121212</color>
+    <color name="textPrimary">#FFFFFF</color>
+    <color name="textSecondary">#B3FFFFFF</color>
+</resources>

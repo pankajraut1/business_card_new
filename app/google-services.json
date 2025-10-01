@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "995065896802",
+    "firebase_url": "https://businesscard-6f985-default-rtdb.firebaseio.com",
+    "project_id": "businesscard-6f985",
+    "storage_bucket": "businesscard-6f985.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:995065896802:android:50b8a48a810a53fe29163b",
+        "android_client_info": {
+          "package_name": "com.example.visitingcard"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "995065896802-rtgp1e0tcld36tpnjvb4hei6etbfafil.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.visitingcard",
+            "certificate_hash": "f084ace3fba374c0d9d93615165ad6115bd2809e"
+          }
+        },
+        {
+          "client_id": "995065896802-0hfci0sq3l7dlpjsastevhh72dmr5rg7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCmJPHS2nfbf6WYsVkgaUZRU26JUooRUPw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "995065896802-0hfci0sq3l7dlpjsastevhh72dmr5rg7.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

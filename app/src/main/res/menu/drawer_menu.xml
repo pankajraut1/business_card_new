@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/nav_edit_info"
+        android:title="Edit info"
+        android:icon="@drawable/ic_edit" />
+
+    <item
+        android:id="@+id/nav_auto_sync"
+        android:title="Auto Sync"
+        android:checkable="true"
+        android:icon="@android:drawable/ic_popup_sync" />
+    <item
+        android:id="@+id/nav_logout"
+        android:title="Logout"
+        android:icon="@android:drawable/ic_lock_power_off" />
+    <item
+        android:id="@+id/nav_credit"
+        android:title="@string/copyright"
+        android:icon="@drawable/ic_credit" />
+</menu>

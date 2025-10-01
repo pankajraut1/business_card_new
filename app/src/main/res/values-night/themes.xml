@@ -1,0 +1,18 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Night mirrors Light theme exactly so app always looks light -->
+    <style name="Theme.VISITINGCARD" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <item name="colorPrimary">@color/buttonBackground</item>
+        <item name="colorPrimaryVariant">@color/textPrimary</item>
+        <item name="colorOnPrimary">@color/buttonText</item>
+        <item name="colorSecondary">@color/buttonBackground</item>
+        <item name="colorOnSecondary">@color/buttonText</item>
+        <!-- Match light mode system bars -->
+        <item name="android:statusBarColor">@color/white</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:navigationBarColor">@color/black</item>
+        <!-- Prevent OEM/system force dark (e.g., MIUI) -->
+        <item name="android:forceDarkAllowed">false</item>
+        <item name="textInputStyle">@style/AppTextInputLayout</item>
+        <item name="textInputOutlinedStyle">@style/AppTextInputLayout</item>
+    </style>
+</resources>

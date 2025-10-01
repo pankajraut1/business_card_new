@@ -1,0 +1,19 @@
+<resources>
+
+    <!-- Other styles above (like Theme.VisitingCard) -->
+
+    <style name="CircleImageView" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
+
+    <!-- App-wide TextInputLayout style for better visibility in light/dark -->
+    <style name="AppTextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxStrokeColor">@color/textinput_stroke</item>
+        <item name="hintTextColor">@color/textinput_stroke</item>
+        <item name="boxStrokeWidth">2dp</item>
+        <item name="boxStrokeWidthFocused">3dp</item>
+        <item name="boxBackgroundMode">outline</item>
+    </style>
+
+</resources>

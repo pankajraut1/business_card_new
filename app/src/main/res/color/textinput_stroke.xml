@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Focused: use primary color -->
+    <item android:state_focused="true" android:color="?attr/colorPrimary" />
+    <!-- Default: use onSurface with some transparency -->
+    <item android:color="?attr/colorOnSurface" android:alpha="0.6" />
+    <!-- Fallback -->
+    <item android:color="?attr/colorOnSurface" />
+</selector>

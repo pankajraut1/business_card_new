@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="35dp"
+    android:height="35dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Outer squares resembling QR corners -->
+    <path android:fillColor="#FFFFFFFF" android:pathData="M3,3h6v6H3z"/>
+    <path android:fillColor="#FFFFFFFF" android:pathData="M15,3h6v6h-6z"/>
+    <path android:fillColor="#FFFFFFFF" android:pathData="M3,15h6v6H3z"/>
+    <!-- Inner small squares -->
+    <path android:fillColor="@color/iconColor" android:pathData="M5,5h2v2H5z" android:fillAlpha="0"/>
+    <!-- Central pattern -->
+    <path android:fillColor="#FFFFFFFF" android:pathData="M11,11h2v2h-2z"/>
+    <path android:fillColor="#FFFFFFFF" android:pathData="M9,13h2v2H9z"/>
+    <path android:fillColor="#FFFFFFFF" android:pathData="M13,9h2v2h-2z"/>
+    <path android:fillColor="#FFFFFFFF" android:pathData="M15,15h4v2h-4z"/>
+    <path android:fillColor="#FFFFFFFF" android:pathData="M17,13h2v2h-2z"/>
+</vector>

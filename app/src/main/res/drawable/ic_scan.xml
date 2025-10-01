@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="35dp"
+    android:height="35dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Four corner scan marks -->
+    <path android:fillColor="#FFFFFFFF" android:pathData="M3,7 L3,3 L7,3 L7,5 L5,5 L5,7 Z"/>
+    <path android:fillColor="#FFFFFFFF" android:pathData="M17,3 L21,3 L21,7 L19,7 L19,5 L17,5 Z"/>
+    <path android:fillColor="#FFFFFFFF" android:pathData="M3,17 L5,17 L5,19 L7,19 L7,21 L3,21 Z"/>
+    <path android:fillColor="#FFFFFFFF" android:pathData="M19,17 L21,17 L21,21 L17,21 L17,19 L19,19 Z"/>
+    <!-- Middle line -->
+    <path android:fillColor="#FFFFFFFF" android:pathData="M4,12 L20,12 L20,13.5 L4,13.5 Z"/>
+</vector>
