@@ -18,7 +18,10 @@ A modern Android app to create, store, sync, share, and manage beautiful digital
 - ☁️ Cloud Sync + 🔄 Offline-first
   Save locally and sync to Firebase. Works offline; syncs when online.
 
-- 📤 Export as PDF (Interactive)
+- � Backup & Restore
+  Export your saved cards to a backup file and restore anytime (useful for migration and safety).
+
+- �📤 Export as PDF (Interactive)
   PDF with clickable actions: call, maps, email, Instagram, website.
 
 - 📷 QR Codes
@@ -29,6 +32,12 @@ A modern Android app to create, store, sync, share, and manage beautiful digital
 
 - 🗂️ Multi-Card Support
   Create, save, search, and manage multiple cards.
+
+- 🎨 Themes + Customize
+  Pick a theme and customize the card’s look (visual preferences stored locally).
+
+- 🧹 Account Management
+  Delete account flow with cleanup (local + cloud, based on sync settings).
 
 - 🔒 Privacy-first
   All data available locally; cloud sync is opt-in.
@@ -72,7 +81,17 @@ A modern Android app to create, store, sync, share, and manage beautiful digital
   Website/Instagram → Browser/app.
 
 - Sync:
-  Enable cloud sync in settings → auto backup/restore across devices.
+  Enable cloud sync in settings → keep cards synced across devices.
+
+- Backup / Restore:
+  Backup cards → share/save the backup file.
+  Restore cards → import from a backup file.
+
+- Themes / Customize:
+  Choose a theme → optionally tweak card styling.
+
+- Delete Account:
+  Remove account and associated data (with confirmation).
 
 - Notifications:
   Receive reminders or updates via FCM.
@@ -141,7 +160,8 @@ A modern Android app to create, store, sync, share, and manage beautiful digital
 
 ## 🗺️ Roadmap
 
-- [ ] Card templates and themes
+- [x] Themes + customization
+- [ ] Card templates
 - [ ] Drag-and-drop layout builder
 - [ ] Privacy-friendly analytics for shares/opens
 - [ ] Multi-language support
@@ -161,7 +181,7 @@ This software is proprietary and confidential. All rights reserved.
 By using this application, you agree to the following restrictions:
 - ❌ No copying, distributing, sublicensing, or publishing the source code or binaries.
 - ❌ No modification, reverse engineering, decompiling, or creating derivative works.
-- ❌ No commercial use, resale, or hosting as a service without prior written permission from the ow
+- ❌ No commercial use, resale, or hosting as a service without prior written permission from the owner.
 
 ---
 
