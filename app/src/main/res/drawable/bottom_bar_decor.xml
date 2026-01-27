@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="360dp"
+    android:height="60dp"
+    android:viewportWidth="360"
+    android:viewportHeight="60">
+
+    <!-- Back wave (soft) -->
+    <path
+        android:fillColor="#1A000000"
+        android:pathData="M0,28 C40,10 80,46 120,28 C160,10 200,46 240,28 C280,10 320,46 360,28 L360,60 L0,60 Z" />
+
+    <!-- Mid wave -->
+    <path
+        android:fillColor="#22000000"
+        android:pathData="M0,34 C45,18 75,44 120,30 C165,16 195,44 240,30 C285,16 315,44 360,30 L360,60 L0,60 Z" />
+
+    <!-- Front wave -->
+    <path
+        android:fillColor="#30000000"
+        android:pathData="M0,40 C50,26 70,44 120,34 C170,24 190,44 240,34 C290,24 310,44 360,34 L360,60 L0,60 Z" />
+
+    <!-- Subtle dot pattern -->
+    <path
+        android:fillColor="#14000000"
+        android:pathData="M26,14 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0 Z
+                          M54,10 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0 Z
+                          M82,16 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0 Z
+                          M110,12 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0 Z
+                          M138,18 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0 Z
+                          M166,10 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0 Z
+                          M194,16 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0 Z
+                          M222,12 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0 Z
+                          M250,18 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0 Z
+                          M278,10 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0 Z
+                          M306,16 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0 Z
+                          M334,12 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0 Z" />
+
+</vector>
