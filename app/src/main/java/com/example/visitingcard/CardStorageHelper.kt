@@ -19,8 +19,12 @@ class CardStorageHelper(context: Context) : SQLiteOpenHelper(
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        db.execSQL("DROP TABLE IF EXISTS $TABLE_CARDS")
-        onCreate(db)
+        if (oldVersion < 2) {
+            try {
+                db.execSQL("ALTER TABLE $TABLE_CARDS ADD COLUMN $KEY_TAG TEXT DEFAULT ''")
+            } catch (_: SQLiteException) {
+            }
+        }
     }
 
     fun saveCard(userId: String, card: Map<String, String>): Long {
@@ -35,6 +39,35 @@ class CardStorageHelper(context: Context) : SQLiteOpenHelper(
             put(KEY_WEBSITE, card[KEY_WEBSITE])
             put(KEY_ADDRESS, card[KEY_ADDRESS])
         }
+
+        val id = db.insert(TABLE_CARDS, null, values)
+        db.close()
+        return id
+    }
+
+    fun insertCardWithTag(
+        userId: String,
+        name: String,
+        occupation: String,
+        email: String,
+        phone: String,
+        instagram: String,
+        website: String,
+        address: String,
+        tag: String
+    ): Long {
+        val db = this.writableDatabase
+        val values = ContentValues()
+
+        values.put(KEY_USER_ID, userId)
+        values.put(KEY_NAME, name)
+        values.put(KEY_OCCUPATION, occupation)
+        values.put(KEY_EMAIL, email)
+        values.put(KEY_PHONE, phone)
+        values.put(KEY_INSTAGRAM, instagram)
+        values.put(KEY_WEBSITE, website)
+        values.put(KEY_ADDRESS, address)
+        values.put(KEY_TAG, tag)
 
         val id = db.insert(TABLE_CARDS, null, values)
         db.close()
@@ -62,6 +95,7 @@ class CardStorageHelper(context: Context) : SQLiteOpenHelper(
         values.put(KEY_INSTAGRAM, instagram)
         values.put(KEY_WEBSITE, website)
         values.put(KEY_ADDRESS, address)
+        values.put(KEY_TAG, "")
 
         val id = db.insert(TABLE_CARDS, null, values)
         db.close()
@@ -93,12 +127,26 @@ class CardStorageHelper(context: Context) : SQLiteOpenHelper(
                     card[KEY_INSTAGRAM] = c.getString(c.getColumnIndexOrThrow(KEY_INSTAGRAM))
                     card[KEY_WEBSITE] = c.getString(c.getColumnIndexOrThrow(KEY_WEBSITE))
                     card[KEY_ADDRESS] = c.getString(c.getColumnIndexOrThrow(KEY_ADDRESS))
+                    val tagIndex = c.getColumnIndex(KEY_TAG)
+                    if (tagIndex >= 0) {
+                        card[KEY_TAG] = c.getString(tagIndex) ?: ""
+                    } else {
+                        card[KEY_TAG] = ""
+                    }
                     cards.add(card)
                 } while (c.moveToNext())
             }
         }
         db.close()
         return cards
+    }
+
+    fun updateTagById(id: Long, tag: String): Boolean {
+        val db = this.writableDatabase
+        val values = ContentValues().apply { put(KEY_TAG, tag) }
+        val updated = db.update(TABLE_CARDS, values, "$KEY_ID = ?", arrayOf(id.toString())) > 0
+        db.close()
+        return updated
     }
 
     fun deleteCard(id: Long): Boolean {
@@ -122,6 +170,33 @@ class CardStorageHelper(context: Context) : SQLiteOpenHelper(
         val sql = "SELECT 1 FROM $TABLE_CARDS WHERE $KEY_USER_ID = ? AND $KEY_NAME = ? AND $KEY_OCCUPATION = ? AND $KEY_EMAIL = ? AND $KEY_PHONE = ? AND $KEY_INSTAGRAM = ? AND $KEY_WEBSITE = ? AND $KEY_ADDRESS = ? LIMIT 1"
         val args = arrayOf(userId, name, occupation, email, phone, instagram, website, address)
         val cursor = db.rawQuery(sql, args)
+        val exists = cursor.use { it.moveToFirst() }
+        db.close()
+        return exists
+    }
+
+    fun hasDuplicateByEmailOrPhone(userId: String, email: String, phone: String): Boolean {
+        val e = email.trim()
+        val p = phone.trim()
+        if (e.isBlank() && p.isBlank()) return false
+
+        val whereParts = mutableListOf<String>()
+        val args = mutableListOf<String>()
+        args.add(userId)
+
+        if (e.isNotBlank()) {
+            whereParts.add("$KEY_EMAIL = ?")
+            args.add(e)
+        }
+        if (p.isNotBlank()) {
+            whereParts.add("$KEY_PHONE = ?")
+            args.add(p)
+        }
+
+        val where = whereParts.joinToString(" OR ")
+        val sql = "SELECT 1 FROM $TABLE_CARDS WHERE $KEY_USER_ID = ? AND ($where) LIMIT 1"
+        val db = this.readableDatabase
+        val cursor = db.rawQuery(sql, args.toTypedArray())
         val exists = cursor.use { it.moveToFirst() }
         db.close()
         return exists
@@ -152,7 +227,7 @@ class CardStorageHelper(context: Context) : SQLiteOpenHelper(
     }
 
     companion object {
-        private const val DATABASE_VERSION = 1
+        private const val DATABASE_VERSION = 2
         private const val DATABASE_NAME = "VisitingCards.db"
 
         const val TABLE_CARDS = "cards"
@@ -165,6 +240,7 @@ class CardStorageHelper(context: Context) : SQLiteOpenHelper(
         const val KEY_INSTAGRAM = "instagram"
         const val KEY_WEBSITE = "website"
         const val KEY_ADDRESS = "address"
+        const val KEY_TAG = "tag"
         const val KEY_TIMESTAMP = "timestamp"
 
         private const val CREATE_TABLE_CARDS = """
@@ -178,6 +254,7 @@ class CardStorageHelper(context: Context) : SQLiteOpenHelper(
                 $KEY_INSTAGRAM TEXT,
                 $KEY_WEBSITE TEXT,
                 $KEY_ADDRESS TEXT,
+                $KEY_TAG TEXT DEFAULT '',
                 $KEY_TIMESTAMP DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         """

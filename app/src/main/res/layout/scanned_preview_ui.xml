@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/scannedPreviewRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
@@ -16,11 +17,11 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Scanned Bussiness Card"
+            android:text="Scanned Business Card"
             android:textSize="20sp"
             android:textColor="@color/textTitle"
             android:textStyle="bold"
-            android:paddingBottom="20sp"></TextView>
+            android:paddingBottom="20dp"></TextView>
 
 
         <!-- Business card style preview -->
@@ -37,6 +38,7 @@
 
             <!-- Solid red band to guarantee edge-to-edge coverage in the rounded top corners -->
             <View
+                android:id="@+id/previewHeaderBand"
                 android:layout_width="match_parent"
                 android:layout_height="72dp"
                 android:layout_gravity="top"
@@ -44,6 +46,7 @@
 
             <!-- Wave overlay on top of the red band -->
             <ImageView
+                android:id="@+id/previewHeaderWave"
                 android:layout_width="match_parent"
                 android:layout_height="72dp"
                 android:layout_gravity="top"

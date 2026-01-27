@@ -7,6 +7,18 @@ class ProfileStorage(context: Context) {
     private val prefs: SharedPreferences =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
+    fun ensureForUser(userId: String) {
+        val cachedUserId = prefs.getString(KEY_USER_ID, null)
+        if (cachedUserId == null) {
+            prefs.edit().putString(KEY_USER_ID, userId).apply()
+            return
+        }
+        if (cachedUserId != userId) {
+            // New user signed in; wipe previous user's cached profile
+            prefs.edit().clear().putString(KEY_USER_ID, userId).apply()
+        }
+    }
+
     fun saveProfile(profile: Map<String, String>) {
         prefs.edit()
             .putString(KEY_NAME, profile[KEY_NAME])
@@ -48,8 +60,13 @@ class ProfileStorage(context: Context) {
 
     fun isDirty(): Boolean = prefs.getBoolean(KEY_DIRTY, false)
 
+    fun clearAll() {
+        prefs.edit().clear().apply()
+    }
+
     companion object {
         private const val PREFS_NAME = "profile_prefs"
+        private const val KEY_USER_ID = "profile_user_id"
         const val KEY_NAME = "Name"
         const val KEY_OCCUPATION = "Occupation"
         const val KEY_EMAIL = "Email"

@@ -168,6 +168,21 @@
             android:textColorHint="@color/textSecondary"/>
     </com.google.android.material.textfield.TextInputLayout>
 
+    <Button
+        android:id="@+id/cancel"
+        android:layout_width="170dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/websiteField"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="20dp"
+        android:layout_marginStart="16dp"
+        android:text="Cancel"
+        android:textSize="16sp"
+        android:textColor="@color/buttonText"
+        android:background="@drawable/btnred"
+        android:backgroundTint="@null"
+        app:backgroundTint="@null"
+        android:textAllCaps="false" />
 
     <Button
         android:id="@+id/submit"

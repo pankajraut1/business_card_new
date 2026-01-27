@@ -29,6 +29,7 @@ object SyncManager {
         try {
             val user = Firebase.auth.currentUser ?: return
             val storage = ProfileStorage(context)
+            storage.ensureForUser(user.uid)
             if (storage.isDirty()) {
                 // Push local changes to cloud
                 val local = storage.getProfile()
@@ -87,6 +88,7 @@ object SyncManager {
                 val insta = child.child(CardStorageHelper.KEY_INSTAGRAM).getValue(String::class.java) ?: ""
                 val web = child.child(CardStorageHelper.KEY_WEBSITE).getValue(String::class.java) ?: ""
                 val addr = child.child(CardStorageHelper.KEY_ADDRESS).getValue(String::class.java) ?: ""
+                val tag = child.child(CardStorageHelper.KEY_TAG).getValue(String::class.java) ?: ""
                 val key = normalizeKey(name, occ, email, phone, insta, web, addr)
                 groups.getOrPut(key) { mutableListOf() }.add(child)
                 cloudSet.add(key)
@@ -98,7 +100,8 @@ object SyncManager {
                         CardStorageHelper.KEY_PHONE to phone,
                         CardStorageHelper.KEY_INSTAGRAM to insta,
                         CardStorageHelper.KEY_WEBSITE to web,
-                        CardStorageHelper.KEY_ADDRESS to addr
+                        CardStorageHelper.KEY_ADDRESS to addr,
+                        CardStorageHelper.KEY_TAG to tag
                     )
                 )
             }
@@ -116,6 +119,7 @@ object SyncManager {
                     put(CardStorageHelper.KEY_INSTAGRAM, first.child(CardStorageHelper.KEY_INSTAGRAM).getValue(String::class.java) ?: "")
                     put(CardStorageHelper.KEY_WEBSITE, first.child(CardStorageHelper.KEY_WEBSITE).getValue(String::class.java) ?: "")
                     put(CardStorageHelper.KEY_ADDRESS, first.child(CardStorageHelper.KEY_ADDRESS).getValue(String::class.java) ?: "")
+                    put(CardStorageHelper.KEY_TAG, first.child(CardStorageHelper.KEY_TAG).getValue(String::class.java) ?: "")
                     put("source", first.child("source").getValue(String::class.java) ?: "local_sync")
                     put("createdAt", first.child("createdAt").getValue(String::class.java) ?: java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.US)
                         .apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }
@@ -141,6 +145,7 @@ object SyncManager {
                 val insta = card[CardStorageHelper.KEY_INSTAGRAM] ?: ""
                 val web = card[CardStorageHelper.KEY_WEBSITE] ?: ""
                 val addr = card[CardStorageHelper.KEY_ADDRESS] ?: ""
+                val tag = card[CardStorageHelper.KEY_TAG] ?: ""
                 val key = normalizeKey(name, occ, email, phone, insta, web, addr)
                 if (!cloudSet.contains(key)) {
                     val formattedTime = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.US)
@@ -154,6 +159,7 @@ object SyncManager {
                         CardStorageHelper.KEY_INSTAGRAM to insta,
                         CardStorageHelper.KEY_WEBSITE to web,
                         CardStorageHelper.KEY_ADDRESS to addr,
+                        CardStorageHelper.KEY_TAG to tag,
                         "source" to "local_sync",
                         "createdAt" to formattedTime
                     )
@@ -172,8 +178,9 @@ object SyncManager {
                 val insta = c[CardStorageHelper.KEY_INSTAGRAM] ?: ""
                 val web = c[CardStorageHelper.KEY_WEBSITE] ?: ""
                 val addr = c[CardStorageHelper.KEY_ADDRESS] ?: ""
+                val tag = c[CardStorageHelper.KEY_TAG] ?: ""
                 if (!helper.existsCard(user.uid, name, occ, email, phone, insta, web, addr)) {
-                    helper.insertCard(user.uid, name, occ, email, phone, insta, web, addr)
+                    helper.insertCardWithTag(user.uid, name, occ, email, phone, insta, web, addr, tag)
                 }
             }
         } catch (e: Exception) {

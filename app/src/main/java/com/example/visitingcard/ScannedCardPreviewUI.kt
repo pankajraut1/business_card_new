@@ -1,21 +1,142 @@
 package com.example.visitingcard
 
 import android.content.Intent
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.example.visitingcard.R
 import android.widget.Toast
+import androidx.core.graphics.drawable.DrawableCompat
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.database.ktx.database
 
 
 class ScannedPreviewUI : AppCompatActivity() {
+
+    private val prefs by lazy { getSharedPreferences("app_prefs", MODE_PRIVATE) }
+
+    private fun sanitizePhoneForTel(raw: String): String? {
+        val trimmed = raw.trim()
+        if (trimmed.isBlank()) return null
+        val cleaned = buildString {
+            var i = 0
+            if (trimmed.startsWith("+")) {
+                append('+')
+                i = 1
+            }
+            while (i < trimmed.length) {
+                val ch = trimmed[i]
+                if (ch.isDigit()) append(ch)
+                i++
+            }
+        }
+        return if (cleaned.any { it.isDigit() }) "tel:$cleaned" else null
+    }
+
+    private data class UiTheme(
+        val id: String,
+        val headerColor: Int,
+        val pageBgColor: Int,
+        val pillBgColor: Int,
+        val pillTextColor: Int
+    )
+
+    private val themes: List<UiTheme> by lazy {
+        listOf(
+            UiTheme(
+                id = "classic_red",
+                headerColor = Color.parseColor("#A82120"),
+                pageBgColor = Color.parseColor("#F5F7FA"),
+                pillBgColor = Color.WHITE,
+                pillTextColor = Color.parseColor("#1A1A1A")
+            ),
+            UiTheme(
+                id = "ocean_blue",
+                headerColor = Color.parseColor("#1565C0"),
+                pageBgColor = Color.parseColor("#F5F7FA"),
+                pillBgColor = Color.WHITE,
+                pillTextColor = Color.parseColor("#102027")
+            ),
+            UiTheme(
+                id = "forest_green",
+                headerColor = Color.parseColor("#2E7D32"),
+                pageBgColor = Color.parseColor("#F5F7FA"),
+                pillBgColor = Color.WHITE,
+                pillTextColor = Color.parseColor("#102027")
+            ),
+            UiTheme(
+                id = "midnight",
+                headerColor = Color.parseColor("#263238"),
+                pageBgColor = Color.parseColor("#ECEFF1"),
+                pillBgColor = Color.WHITE,
+                pillTextColor = Color.parseColor("#102027")
+            )
+        )
+    }
+
+    private fun getSelectedThemeId(): String {
+        return prefs.getString("business_theme", "classic_red") ?: "classic_red"
+    }
+
+    private fun luminance(color: Int): Float {
+        val r = Color.red(color) / 255f
+        val g = Color.green(color) / 255f
+        val b = Color.blue(color) / 255f
+        return 0.2126f * r + 0.7152f * g + 0.0722f * b
+    }
+
+    private fun ensureContrastingPillBg(pillBg: Int, pageBg: Int): Int {
+        val diff = kotlin.math.abs(luminance(pillBg) - luminance(pageBg))
+        return if (diff < 0.12f) Color.parseColor("#E6EAEE") else pillBg
+    }
+
+    private fun applyTheme() {
+        val base = themes.firstOrNull { it.id == getSelectedThemeId() } ?: themes.first()
+        val theme = base.copy(pillBgColor = ensureContrastingPillBg(base.pillBgColor, base.pageBgColor))
+
+        findViewById<View?>(R.id.scannedPreviewRoot)?.setBackgroundColor(theme.pageBgColor)
+
+        findViewById<View?>(R.id.previewHeaderBand)?.setBackgroundColor(theme.headerColor)
+
+        findViewById<ImageView?>(R.id.previewHeaderWave)?.let { wave ->
+            wave.imageTintList = ColorStateList.valueOf(theme.headerColor)
+        }
+
+        val pillRows = listOf(
+            R.id.rowOccupation,
+            R.id.rowEmail,
+            R.id.rowPhone,
+            R.id.rowInstagram,
+            R.id.rowWebsite,
+            R.id.rowAddress
+        )
+        pillRows.forEach { id ->
+            val row = findViewById<View?>(id) ?: return@forEach
+            row.background?.mutate()?.let { bg ->
+                DrawableCompat.setTint(bg, theme.pillBgColor)
+            }
+        }
+
+        val pillTextIds = listOf(
+            R.id.tvOccupation,
+            R.id.tvEmail,
+            R.id.tvPhone,
+            R.id.tvInstagram,
+            R.id.tvWebsite,
+            R.id.tvAddress
+        )
+        pillTextIds.forEach { id ->
+            (findViewById<View?>(id) as? TextView)?.setTextColor(theme.pillTextColor)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,6 +160,8 @@ class ScannedPreviewUI : AppCompatActivity() {
         val tvWebsite = findViewById<TextView>(R.id.tvWebsite)
         val rowAddress = findViewById<LinearLayout>(R.id.rowAddress)
         val tvAddress = findViewById<TextView>(R.id.tvAddress)
+
+        applyTheme()
 
         // Populate preview
         val parsed = parseScannedCardData(cardData ?: "")
@@ -78,7 +201,8 @@ class ScannedPreviewUI : AppCompatActivity() {
         }
         if (phone.isNotBlank()) {
             val click: (View) -> Unit = {
-                startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:$phone")))
+                val tel = sanitizePhoneForTel(phone)
+                if (tel != null) startActivity(Intent(Intent.ACTION_DIAL, Uri.parse(tel)))
             }
             rowPhone.setOnClickListener(click)
             tvPhone.setOnClickListener(click)
@@ -121,25 +245,34 @@ class ScannedPreviewUI : AppCompatActivity() {
         }
 
         saveButton.setOnClickListener {
-            cardData?.let {
-                // Reject payment or non-business QR contents
-                if (isLikelyPaymentOrNonBusiness(it)) {
-                    Toast.makeText(this, "This QR looks like a payment/non-business code. Not saved.", Toast.LENGTH_SHORT).show()
-                    return@let
-                }
-                val userId = Firebase.auth.currentUser?.uid
-                if (userId == null) {
-                    Toast.makeText(this, "Please log in to save cards", Toast.LENGTH_SHORT).show()
-                    return@let
-                }
+            val raw = cardData ?: return@setOnClickListener
 
-                val parsed = parseScannedCardData(it)
-                // Ensure we have at least minimal business information
-                if (!hasMinimumBusinessInfo(parsed)) {
-                    Toast.makeText(this, "Not enough business card info detected.", Toast.LENGTH_SHORT).show()
-                    return@let
-                }
-                val helper = CardStorageHelper(this)
+            // Reject payment or non-business QR contents
+            if (isLikelyPaymentOrNonBusiness(raw)) {
+                Toast.makeText(this, "This QR looks like a payment/non-business code. Not saved.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            val userId = Firebase.auth.currentUser?.uid
+            if (userId == null) {
+                Toast.makeText(this, "Please log in to save cards", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            val parsed = parseScannedCardData(raw)
+            if (!hasMinimumBusinessInfo(parsed)) {
+                Toast.makeText(this, "Not enough business card info detected.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            val helper = CardStorageHelper(this)
+            val dup = helper.hasDuplicateByEmailOrPhone(
+                userId = userId,
+                email = parsed[CardStorageHelper.KEY_EMAIL] ?: "",
+                phone = parsed[CardStorageHelper.KEY_PHONE] ?: ""
+            )
+
+            val proceedSave: () -> Unit = {
                 helper.insertCard(
                     userId = userId,
                     name = parsed[CardStorageHelper.KEY_NAME] ?: "",
@@ -151,11 +284,10 @@ class ScannedPreviewUI : AppCompatActivity() {
                     address = parsed[CardStorageHelper.KEY_ADDRESS] ?: "",
                 )
 
-                // Also save to Firebase under users/{uid}/cards
-                // Use ISO-8601 UTC so it's human-readable and sorts lexicographically
                 val formattedTime = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.US)
                     .apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }
                     .format(java.util.Date())
+
                 val cardForFirebase = hashMapOf(
                     CardStorageHelper.KEY_NAME to (parsed[CardStorageHelper.KEY_NAME] ?: ""),
                     CardStorageHelper.KEY_OCCUPATION to (parsed[CardStorageHelper.KEY_OCCUPATION] ?: ""),
@@ -164,12 +296,11 @@ class ScannedPreviewUI : AppCompatActivity() {
                     CardStorageHelper.KEY_INSTAGRAM to (parsed[CardStorageHelper.KEY_INSTAGRAM] ?: ""),
                     CardStorageHelper.KEY_WEBSITE to (parsed[CardStorageHelper.KEY_WEBSITE] ?: ""),
                     CardStorageHelper.KEY_ADDRESS to (parsed[CardStorageHelper.KEY_ADDRESS] ?: ""),
+                    CardStorageHelper.KEY_TAG to "",
                     "source" to "scan",
-                    // Single human-readable field
                     "createdAt" to formattedTime
                 )
 
-                // Use deterministic key based on normalized content to avoid duplicates
                 val keyRaw = normalizeKey(
                     cardForFirebase[CardStorageHelper.KEY_NAME] as String,
                     cardForFirebase[CardStorageHelper.KEY_OCCUPATION] as String,
@@ -193,8 +324,20 @@ class ScannedPreviewUI : AppCompatActivity() {
                     .addOnFailureListener {
                         Toast.makeText(this, "Saved locally. Cloud save failed.", Toast.LENGTH_SHORT).show()
                     }
+
                 Toast.makeText(this, "Card saved successfully!", Toast.LENGTH_SHORT).show()
-                finish() // Go back after saving
+                finish()
+            }
+
+            if (dup) {
+                androidx.appcompat.app.AlertDialog.Builder(this)
+                    .setTitle("Possible duplicate")
+                    .setMessage("A saved card with the same email/phone already exists. Save anyway?")
+                    .setPositiveButton("Save") { _, _ -> proceedSave() }
+                    .setNegativeButton("Cancel", null)
+                    .show()
+            } else {
+                proceedSave()
             }
         }
 

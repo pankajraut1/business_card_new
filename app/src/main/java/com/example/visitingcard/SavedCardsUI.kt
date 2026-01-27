@@ -3,6 +3,7 @@ package com.example.visitingcard
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.util.TypedValue
@@ -11,11 +12,14 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.ImageView
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import android.text.Editable
+import android.text.TextWatcher
 import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -29,15 +33,128 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import androidx.core.graphics.drawable.DrawableCompat
+import com.google.android.material.chip.Chip
+import com.google.android.material.chip.ChipGroup
 
 class SavedCardsUI : AppCompatActivity() {
     private val auth: FirebaseAuth by lazy { Firebase.auth }
     private lateinit var cardStorageHelper: CardStorageHelper
     private lateinit var container: LinearLayout
+    private lateinit var searchEditText: EditText
+    private lateinit var tagChipGroup: ChipGroup
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
     private val FOOTER_TAG = "footer_note"
     private val prefs by lazy { getSharedPreferences("app_prefs", MODE_PRIVATE) }
     private val displayKeySet = mutableSetOf<String>()
+
+    private var currentTheme: UiTheme? = null
+
+    private data class UiTheme(
+        val id: String,
+        val headerColor: Int,
+        val pageBgColor: Int,
+        val pillBgColor: Int,
+        val pillTextColor: Int
+    )
+
+    private val themes: List<UiTheme> by lazy {
+        listOf(
+            UiTheme(
+                id = "classic_red",
+                headerColor = Color.parseColor("#A82120"),
+                pageBgColor = Color.parseColor("#F5F7FA"),
+                pillBgColor = Color.WHITE,
+                pillTextColor = Color.parseColor("#1A1A1A")
+            ),
+            UiTheme(
+                id = "ocean_blue",
+                headerColor = Color.parseColor("#1565C0"),
+                pageBgColor = Color.parseColor("#F5F7FA"),
+                pillBgColor = Color.WHITE,
+                pillTextColor = Color.parseColor("#102027")
+            ),
+            UiTheme(
+                id = "forest_green",
+                headerColor = Color.parseColor("#2E7D32"),
+                pageBgColor = Color.parseColor("#F5F7FA"),
+                pillBgColor = Color.WHITE,
+                pillTextColor = Color.parseColor("#102027")
+            ),
+            UiTheme(
+                id = "midnight",
+                headerColor = Color.parseColor("#263238"),
+                pageBgColor = Color.parseColor("#ECEFF1"),
+                pillBgColor = Color.WHITE,
+                pillTextColor = Color.parseColor("#102027")
+            )
+        )
+    }
+
+    private fun getSelectedThemeId(): String {
+        return prefs.getString("business_theme", "classic_red") ?: "classic_red"
+    }
+
+    private fun luminance(color: Int): Float {
+        val r = Color.red(color) / 255f
+        val g = Color.green(color) / 255f
+        val b = Color.blue(color) / 255f
+        return 0.2126f * r + 0.7152f * g + 0.0722f * b
+    }
+
+    private fun ensureContrastingPillBg(pillBg: Int, pageBg: Int): Int {
+        // If colors are too close (e.g., white on near-white), use a light gray pill bg.
+        val diff = kotlin.math.abs(luminance(pillBg) - luminance(pageBg))
+        return if (diff < 0.12f) Color.parseColor("#E6EAEE") else pillBg
+    }
+
+    private fun createCardContainerDrawable(): GradientDrawable {
+        val radius = 16.dpToPx().toFloat()
+        val strokeWidth = 1.dpToPx()
+        return GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            cornerRadius = radius
+            setColor(Color.WHITE)
+            setStroke(strokeWidth, Color.parseColor("#D0D5D9"))
+        }
+    }
+
+    private fun applyTheme() {
+        val base = themes.firstOrNull { it.id == getSelectedThemeId() } ?: themes.first()
+        val adjustedPillBg = ensureContrastingPillBg(base.pillBgColor, base.pageBgColor)
+        val theme = base.copy(pillBgColor = adjustedPillBg)
+        currentTheme = theme
+
+        findViewById<View?>(R.id.savedCardsRoot)?.setBackgroundColor(theme.pageBgColor)
+
+        findViewById<Toolbar?>(R.id.toolbar)?.setBackgroundColor(theme.headerColor)
+
+        // Keep the filters readable and consistent
+        findViewById<View?>(R.id.filterBar)?.setBackgroundColor(theme.pageBgColor)
+
+        findViewById<EditText?>(R.id.searchEditText)?.let { et ->
+            et.background?.mutate()?.let { bg ->
+                DrawableCompat.setTint(bg, theme.pillBgColor)
+            }
+            et.setTextColor(theme.pillTextColor)
+            et.setHintTextColor(Color.parseColor("#6B7280"))
+        }
+
+        // Rebuild chips so their colors follow the selected theme
+        updateTagFilterOptions(allCards)
+    }
+
+    private val defaultTags = listOf("", "Lead", "Client", "Vendor", "Friend")
+    private var activeSearchQuery: String = ""
+    private var activeTagFilter: String = "ALL"
+    private var allCards: List<Map<String, Any?>> = emptyList()
+
+    private enum class SortMode {
+        RECENT,
+        NAME_AZ
+    }
+
+    private var sortMode: SortMode = SortMode.RECENT
 
     private fun computeCardKey(card: Map<String, Any?>): String {
         val name = (card[CardStorageHelper.KEY_NAME] ?: "").toString().trim()
@@ -48,6 +165,24 @@ class SavedCardsUI : AppCompatActivity() {
         val web = (card[CardStorageHelper.KEY_WEBSITE] ?: "").toString().trim()
         val addr = (card[CardStorageHelper.KEY_ADDRESS] ?: "").toString().trim()
         return listOf(name, occ, email, phone, insta, web, addr).joinToString("|")
+    }
+
+    private fun sanitizePhoneForTel(raw: String): String? {
+        val trimmed = raw.trim()
+        if (trimmed.isBlank()) return null
+        val cleaned = buildString {
+            var i = 0
+            if (trimmed.startsWith("+")) {
+                append('+')
+                i = 1
+            }
+            while (i < trimmed.length) {
+                val ch = trimmed[i]
+                if (ch.isDigit()) append(ch)
+                i++
+            }
+        }
+        return if (cleaned.any { it.isDigit() }) "tel:$cleaned" else null
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -62,6 +197,8 @@ class SavedCardsUI : AppCompatActivity() {
 
         // Initialize views
         container = findViewById(R.id.savedCardsContainer)
+        searchEditText = findViewById(R.id.searchEditText)
+        tagChipGroup = findViewById(R.id.tagChipGroup)
         
         // Firebase Auth is initialized via lazy delegate
         cardStorageHelper = CardStorageHelper(this)
@@ -81,6 +218,28 @@ class SavedCardsUI : AppCompatActivity() {
         if (NetworkUtils.isOnline(this) && prefs.getBoolean("auto_sync_enabled", true)) {
             loadUserCards(currentUser.uid)
         }
+
+        setupFilters()
+
+        applyTheme()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // If the user changed theme elsewhere, re-apply when returning
+        applyTheme()
+        renderFiltered()
+    }
+
+    private fun setupFilters() {
+        searchEditText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                activeSearchQuery = s?.toString()?.trim() ?: ""
+                renderFiltered()
+            }
+            override fun afterTextChanged(s: Editable?) {}
+        })
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -90,6 +249,10 @@ class SavedCardsUI : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
+            R.id.action_sort -> {
+                showSortPicker()
+                true
+            }
             R.id.action_sync_now -> {
                 val uid = auth.currentUser?.uid
                 if (uid != null) {
@@ -101,6 +264,26 @@ class SavedCardsUI : AppCompatActivity() {
             }
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    private fun showSortPicker() {
+        val options = arrayOf("Recent", "Name (A–Z)")
+        val pre = when (sortMode) {
+            SortMode.RECENT -> 0
+            SortMode.NAME_AZ -> 1
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Sort")
+            .setSingleChoiceItems(options, pre) { dialog, which ->
+                sortMode = when (which) {
+                    1 -> SortMode.NAME_AZ
+                    else -> SortMode.RECENT
+                }
+                renderFiltered()
+                dialog.dismiss()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun refreshNow(userId: String) {
@@ -129,43 +312,36 @@ class SavedCardsUI : AppCompatActivity() {
                     map[CardStorageHelper.KEY_INSTAGRAM] = child.child(CardStorageHelper.KEY_INSTAGRAM).getValue(String::class.java) ?: ""
                     map[CardStorageHelper.KEY_WEBSITE] = child.child(CardStorageHelper.KEY_WEBSITE).getValue(String::class.java) ?: ""
                     map[CardStorageHelper.KEY_ADDRESS] = child.child(CardStorageHelper.KEY_ADDRESS).getValue(String::class.java) ?: ""
+                    map[CardStorageHelper.KEY_TAG] = child.child(CardStorageHelper.KEY_TAG).getValue(String::class.java) ?: ""
                     map["createdAt"] = child.child("createdAt").getValue(String::class.java) ?: ""
                     map["__fbKey"] = child.key
                     cloudCards.add(map)
                 }
 
-                container.removeAllViews()
-                displayKeySet.clear()
-
-                if (cloudCards.isEmpty()) {
-                    showNoCardsMessage()
-                } else {
+                if (cloudCards.isNotEmpty()) {
                     cloudCards.sortByDescending { (it["createdAt"] as? String) ?: "" }
-                    cloudCards.forEach { card ->
-                        val key = computeCardKey(card)
-                        if (displayKeySet.add(key)) {
-                            createCardView(card)
-                        }
-                    }
-                    addFooterNote()
+                }
 
-                    // Cache to local DB
-                    coroutineScope.launch(Dispatchers.IO) {
-                        try {
-                            cloudCards.forEach { card ->
-                                val name = (card[CardStorageHelper.KEY_NAME] as? String) ?: ""
-                                val occ = (card[CardStorageHelper.KEY_OCCUPATION] as? String) ?: ""
-                                val email = (card[CardStorageHelper.KEY_EMAIL] as? String) ?: ""
-                                val phone = (card[CardStorageHelper.KEY_PHONE] as? String) ?: ""
-                                val insta = (card[CardStorageHelper.KEY_INSTAGRAM] as? String) ?: ""
-                                val web = (card[CardStorageHelper.KEY_WEBSITE] as? String) ?: ""
-                                val addr = (card[CardStorageHelper.KEY_ADDRESS] as? String) ?: ""
-                                if (!cardStorageHelper.existsCard(userId, name, occ, email, phone, insta, web, addr)) {
-                                    cardStorageHelper.insertCard(userId, name, occ, email, phone, insta, web, addr)
-                                }
+                allCards = cloudCards
+                updateTagFilterOptions(allCards)
+                renderFiltered()
+
+                coroutineScope.launch(Dispatchers.IO) {
+                    try {
+                        cloudCards.forEach { card ->
+                            val name = (card[CardStorageHelper.KEY_NAME] as? String) ?: ""
+                            val occ = (card[CardStorageHelper.KEY_OCCUPATION] as? String) ?: ""
+                            val email = (card[CardStorageHelper.KEY_EMAIL] as? String) ?: ""
+                            val phone = (card[CardStorageHelper.KEY_PHONE] as? String) ?: ""
+                            val insta = (card[CardStorageHelper.KEY_INSTAGRAM] as? String) ?: ""
+                            val web = (card[CardStorageHelper.KEY_WEBSITE] as? String) ?: ""
+                            val addr = (card[CardStorageHelper.KEY_ADDRESS] as? String) ?: ""
+                            val tag = (card[CardStorageHelper.KEY_TAG] as? String) ?: ""
+                            if (!cardStorageHelper.existsCard(userId, name, occ, email, phone, insta, web, addr)) {
+                                cardStorageHelper.insertCardWithTag(userId, name, occ, email, phone, insta, web, addr, tag)
                             }
-                        } catch (_: Exception) { }
-                    }
+                        }
+                    } catch (_: Exception) { }
                 }
 
                 Toast.makeText(this, "Synced", Toast.LENGTH_SHORT).show()
@@ -203,45 +379,36 @@ class SavedCardsUI : AppCompatActivity() {
                     map[CardStorageHelper.KEY_INSTAGRAM] = child.child(CardStorageHelper.KEY_INSTAGRAM).getValue(String::class.java) ?: ""
                     map[CardStorageHelper.KEY_WEBSITE] = child.child(CardStorageHelper.KEY_WEBSITE).getValue(String::class.java) ?: ""
                     map[CardStorageHelper.KEY_ADDRESS] = child.child(CardStorageHelper.KEY_ADDRESS).getValue(String::class.java) ?: ""
+                    map[CardStorageHelper.KEY_TAG] = child.child(CardStorageHelper.KEY_TAG).getValue(String::class.java) ?: ""
                     map["createdAt"] = child.child("createdAt").getValue(String::class.java) ?: ""
                     map["__fbKey"] = child.key
                     cloudCards.add(map)
                 }
 
-                // Reset UI and dedupe set before repainting from cloud
-                container.removeAllViews()
-                displayKeySet.clear()
-                if (cloudCards.isEmpty()) {
-                    showNoCardsMessage()
-                } else {
-                    // createdAt is ISO-8601 UTC string (yyyy-MM-dd'T'HH:mm:ss'Z'), lexicographic sort works
+                if (cloudCards.isNotEmpty()) {
                     cloudCards.sortByDescending { (it["createdAt"] as? String) ?: "" }
-                    cloudCards.forEach { card ->
-                        val key = computeCardKey(card)
-                        if (displayKeySet.add(key)) {
-                            createCardView(card)
-                        }
-                    }
-                    addFooterNote()
+                }
 
-                    // Cache to local SQLite for offline access (do not clear to keep unsynced local cards)
-                    coroutineScope.launch(Dispatchers.IO) {
-                        try {
-                            cloudCards.forEach { card ->
-                                val name = (card[CardStorageHelper.KEY_NAME] as? String) ?: ""
-                                val occ = (card[CardStorageHelper.KEY_OCCUPATION] as? String) ?: ""
-                                val email = (card[CardStorageHelper.KEY_EMAIL] as? String) ?: ""
-                                val phone = (card[CardStorageHelper.KEY_PHONE] as? String) ?: ""
-                                val insta = (card[CardStorageHelper.KEY_INSTAGRAM] as? String) ?: ""
-                                val web = (card[CardStorageHelper.KEY_WEBSITE] as? String) ?: ""
-                                val addr = (card[CardStorageHelper.KEY_ADDRESS] as? String) ?: ""
-                                if (!cardStorageHelper.existsCard(userId, name, occ, email, phone, insta, web, addr)) {
-                                    cardStorageHelper.insertCard(userId, name, occ, email, phone, insta, web, addr)
-                                }
+                allCards = cloudCards
+                updateTagFilterOptions(allCards)
+                renderFiltered()
+
+                coroutineScope.launch(Dispatchers.IO) {
+                    try {
+                        cloudCards.forEach { card ->
+                            val name = (card[CardStorageHelper.KEY_NAME] as? String) ?: ""
+                            val occ = (card[CardStorageHelper.KEY_OCCUPATION] as? String) ?: ""
+                            val email = (card[CardStorageHelper.KEY_EMAIL] as? String) ?: ""
+                            val phone = (card[CardStorageHelper.KEY_PHONE] as? String) ?: ""
+                            val insta = (card[CardStorageHelper.KEY_INSTAGRAM] as? String) ?: ""
+                            val web = (card[CardStorageHelper.KEY_WEBSITE] as? String) ?: ""
+                            val addr = (card[CardStorageHelper.KEY_ADDRESS] as? String) ?: ""
+                            val tag = (card[CardStorageHelper.KEY_TAG] as? String) ?: ""
+                            if (!cardStorageHelper.existsCard(userId, name, occ, email, phone, insta, web, addr)) {
+                                cardStorageHelper.insertCardWithTag(userId, name, occ, email, phone, insta, web, addr, tag)
                             }
-                        } catch (e: Exception) {
-                            // Swallow cache failures silently
                         }
+                    } catch (_: Exception) {
                     }
                 }
             }
@@ -259,24 +426,133 @@ class SavedCardsUI : AppCompatActivity() {
                 val cards = withContext(Dispatchers.IO) {
                     cardStorageHelper.getUserCards(userId)
                 }
-                // Reset UI and dedupe set for local-first render
-                container.removeAllViews()
-                displayKeySet.clear()
-                if (cards.isEmpty()) {
-                    showNoCardsMessage()
-                    return@launch
-                }
-                cards.forEach { card ->
-                    val key = computeCardKey(card)
-                    if (displayKeySet.add(key)) {
-                        createCardView(card)
-                    }
-                }
-                addFooterNote()
+                val localMapped = cards.map { it as Map<String, Any?> }
+                allCards = localMapped
+                updateTagFilterOptions(allCards)
+                renderFiltered()
             } catch (e: Exception) {
                 showError("Failed to load cards: ${e.message}")
             }
         }
+    }
+
+    private fun updateTagFilterOptions(cards: List<Map<String, Any?>>) {
+        val tagsFromData = cards
+            .map { (it[CardStorageHelper.KEY_TAG] ?: "").toString().trim() }
+            .filter { it.isNotBlank() }
+            .distinct()
+            .sorted()
+
+        val options = mutableListOf<String>()
+        options.add("All")
+        options.add("Untagged")
+        defaultTags.filter { it.isNotBlank() }.forEach { t ->
+            if (!options.contains(t)) options.add(t)
+        }
+        tagsFromData.forEach { t ->
+            if (!options.contains(t)) options.add(t)
+        }
+
+        buildTagChips(options)
+    }
+
+    private fun buildTagChips(options: List<String>) {
+        // Keep selection stable
+        val selectedLabel = when (activeTagFilter) {
+            "ALL" -> "All"
+            "UNTAGGED" -> "Untagged"
+            else -> activeTagFilter
+        }
+
+        tagChipGroup.isSingleSelection = true
+
+        tagChipGroup.setOnCheckedStateChangeListener(null)
+        tagChipGroup.removeAllViews()
+
+        val theme = currentTheme
+        val chipBg = theme?.headerColor ?: Color.parseColor("#A82120")
+        val chipText = Color.WHITE
+        val checkedBg = darkenColor(chipBg)
+
+        options.forEach { label ->
+            val chip = Chip(this).apply {
+                id = View.generateViewId()
+                text = label
+                isCheckable = true
+                isClickable = true
+                chipBackgroundColor = ColorStateList.valueOf(chipBg)
+                setTextColor(chipText)
+                checkedIcon = null
+                // Make checked state visible by changing background
+                setOnCheckedChangeListener { _, isChecked ->
+                    chipBackgroundColor = ColorStateList.valueOf(if (isChecked) checkedBg else chipBg)
+                }
+            }
+            tagChipGroup.addView(chip)
+            if (label == selectedLabel) chip.isChecked = true
+        }
+
+        tagChipGroup.setOnCheckedStateChangeListener { group, checkedIds ->
+            val checkedId = checkedIds.firstOrNull()
+            val checkedChip = checkedId?.let { group.findViewById<Chip>(it) }
+            val value = checkedChip?.text?.toString() ?: "All"
+
+            activeTagFilter = when (value) {
+                "All" -> "ALL"
+                "Untagged" -> "UNTAGGED"
+                else -> value
+            }
+            renderFiltered()
+        }
+    }
+
+    private fun darkenColor(color: Int): Int {
+        val r = (Color.red(color) * 0.82f).toInt().coerceIn(0, 255)
+        val g = (Color.green(color) * 0.82f).toInt().coerceIn(0, 255)
+        val b = (Color.blue(color) * 0.82f).toInt().coerceIn(0, 255)
+        return Color.rgb(r, g, b)
+    }
+
+    private fun renderFiltered() {
+        val q = activeSearchQuery.trim().lowercase()
+        val filtered = allCards.filter { card ->
+            val tag = (card[CardStorageHelper.KEY_TAG] ?: "").toString().trim()
+            val tagOk = when (activeTagFilter) {
+                "ALL" -> true
+                "UNTAGGED" -> tag.isBlank()
+                else -> tag.equals(activeTagFilter, ignoreCase = true)
+            }
+            if (!tagOk) return@filter false
+
+            if (q.isBlank()) return@filter true
+
+            // Search by NAME only (as requested)
+            val name = (card[CardStorageHelper.KEY_NAME] ?: "").toString().trim().lowercase()
+            name.contains(q)
+        }
+
+        val sorted = when (sortMode) {
+            SortMode.NAME_AZ -> filtered.sortedBy {
+                (it[CardStorageHelper.KEY_NAME] ?: "").toString().trim().lowercase()
+            }
+            SortMode.RECENT -> filtered
+        }
+
+        container.removeAllViews()
+        displayKeySet.clear()
+
+        if (sorted.isEmpty()) {
+            showNoCardsMessage()
+            return
+        }
+
+        sorted.forEach { card ->
+            val key = computeCardKey(card)
+            if (displayKeySet.add(key)) {
+                createCardView(card)
+            }
+        }
+        addFooterNote()
     }
     
     private fun showNoCardsMessage() {
@@ -302,9 +578,11 @@ class SavedCardsUI : AppCompatActivity() {
     }
     
     private fun createCardView(card: Map<String, Any?>) {
+        val theme = currentTheme
+
         // Use a FrameLayout so we can overlay the delete icon without consuming vertical space
         val cardFrame = FrameLayout(this).apply {
-            background = ContextCompat.getDrawable(context, R.drawable.saved_card_bg)
+            background = createCardContainerDrawable()
             layoutParams = LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
@@ -321,7 +599,7 @@ class SavedCardsUI : AppCompatActivity() {
 
         // Add a solid red band under the wave to ensure edge-to-edge coverage into rounded corners
         val headerBand = View(this).apply {
-            setBackgroundColor(ContextCompat.getColor(this@SavedCardsUI, R.color.headerRed))
+            setBackgroundColor(theme?.headerColor ?: ContextCompat.getColor(this@SavedCardsUI, R.color.headerRed))
             layoutParams = FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 72.dpToPx()
@@ -333,6 +611,7 @@ class SavedCardsUI : AppCompatActivity() {
         val headerWave = ImageView(this).apply {
             setImageResource(R.drawable.header_wave)
             scaleType = ImageView.ScaleType.FIT_XY
+            theme?.let { t -> imageTintList = ColorStateList.valueOf(t.headerColor) }
             layoutParams = FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 72.dpToPx()
@@ -510,6 +789,28 @@ class SavedCardsUI : AppCompatActivity() {
             }
             contentLayout.addView(nameView)
         }
+
+        val tagValue = (card[CardStorageHelper.KEY_TAG] ?: "").toString().trim()
+        if (tagValue.isNotBlank()) {
+            val tagView = TextView(this).apply {
+                text = tagValue
+                textSize = 12f
+                setTextColor(ContextCompat.getColor(context, R.color.white))
+                setPadding(0, 0, 0, 8.dpToPx())
+            }
+            tagView.layoutParams = LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply {
+                marginStart = 8.dpToPx()
+            }
+            contentLayout.addView(tagView)
+        }
+
+        cardFrame.setOnLongClickListener {
+            showTagDialog(card)
+            true
+        }
         
         // Add occupation row
         card[CardStorageHelper.KEY_OCCUPATION]?.takeIf { it.toString().isNotBlank() }?.let { occupation ->
@@ -529,7 +830,8 @@ class SavedCardsUI : AppCompatActivity() {
         // Add phone row
         card[CardStorageHelper.KEY_PHONE]?.takeIf { it.toString().isNotBlank() }?.let { phone ->
             addCardRow(contentLayout, "", phone.toString(), R.drawable.ic_phone, true) {
-                startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:$phone")))
+                val tel = sanitizePhoneForTel(phone.toString())
+                if (tel != null) startActivity(Intent(Intent.ACTION_DIAL, Uri.parse(tel)))
             }
         }
         
@@ -568,6 +870,93 @@ class SavedCardsUI : AppCompatActivity() {
         
         container.addView(cardFrame)
     }
+
+    private fun showTagDialog(card: Map<String, Any?>) {
+        val userId = auth.currentUser?.uid ?: return
+        val idStr = card[CardStorageHelper.KEY_ID]?.toString()
+        val current = (card[CardStorageHelper.KEY_TAG] ?: "").toString().trim()
+
+        val tags = mutableListOf<String>()
+        tags.add("No tag")
+        defaultTags.filter { it.isNotBlank() }.forEach { t ->
+            if (!tags.contains(t)) tags.add(t)
+        }
+        val dataTags = allCards
+            .map { (it[CardStorageHelper.KEY_TAG] ?: "").toString().trim() }
+            .filter { it.isNotBlank() }
+            .distinct()
+            .sorted()
+        dataTags.forEach { t -> if (!tags.contains(t)) tags.add(t) }
+
+        val preselect = when {
+            current.isBlank() -> 0
+            else -> tags.indexOf(current).takeIf { it >= 0 } ?: 0
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle("Set Tag")
+            .setSingleChoiceItems(tags.toTypedArray(), preselect) { dialog, which ->
+                val selected = tags[which]
+                val newTag = if (selected == "No tag") "" else selected
+
+                val localId = idStr?.toLongOrNull()
+                if (localId != null) {
+                    coroutineScope.launch(Dispatchers.IO) {
+                        cardStorageHelper.updateTagById(localId, newTag)
+                    }
+                }
+
+                if (NetworkUtils.isOnline(this) && prefs.getBoolean("auto_sync_enabled", true)) {
+                    val fbKey = card["__fbKey"] as? String
+                    if (!fbKey.isNullOrBlank()) {
+                        Firebase.database.reference
+                            .child("users")
+                            .child(userId)
+                            .child("cards")
+                            .child(fbKey)
+                            .child(CardStorageHelper.KEY_TAG)
+                            .setValue(newTag)
+                    } else {
+                        updateCloudTagByContent(userId, card, newTag)
+                    }
+                }
+
+                val updated = card.toMutableMap()
+                updated[CardStorageHelper.KEY_TAG] = newTag
+                allCards = allCards.map { c ->
+                    if (computeCardKey(c) == computeCardKey(card)) updated else c
+                }
+                updateTagFilterOptions(allCards)
+                renderFiltered()
+
+                dialog.dismiss()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun updateCloudTagByContent(userId: String, card: Map<String, Any?>, newTag: String) {
+        Firebase.database.reference
+            .child("users")
+            .child(userId)
+            .child("cards")
+            .get()
+            .addOnSuccessListener { snap ->
+                snap.children.forEach { child ->
+                    val cmap = hashMapOf<String, Any?>()
+                    cmap[CardStorageHelper.KEY_NAME] = child.child(CardStorageHelper.KEY_NAME).getValue(String::class.java) ?: ""
+                    cmap[CardStorageHelper.KEY_OCCUPATION] = child.child(CardStorageHelper.KEY_OCCUPATION).getValue(String::class.java) ?: ""
+                    cmap[CardStorageHelper.KEY_EMAIL] = child.child(CardStorageHelper.KEY_EMAIL).getValue(String::class.java) ?: ""
+                    cmap[CardStorageHelper.KEY_PHONE] = child.child(CardStorageHelper.KEY_PHONE).getValue(String::class.java) ?: ""
+                    cmap[CardStorageHelper.KEY_INSTAGRAM] = child.child(CardStorageHelper.KEY_INSTAGRAM).getValue(String::class.java) ?: ""
+                    cmap[CardStorageHelper.KEY_WEBSITE] = child.child(CardStorageHelper.KEY_WEBSITE).getValue(String::class.java) ?: ""
+                    cmap[CardStorageHelper.KEY_ADDRESS] = child.child(CardStorageHelper.KEY_ADDRESS).getValue(String::class.java) ?: ""
+                    if (computeCardKey(cmap) == computeCardKey(card)) {
+                        child.ref.child(CardStorageHelper.KEY_TAG).setValue(newTag)
+                    }
+                }
+            }
+    }
     
     private fun addCardRow(
         parent: LinearLayout,
@@ -577,6 +966,7 @@ class SavedCardsUI : AppCompatActivity() {
         clickable: Boolean,
         onClick: (() -> Unit)? = null
     ) {
+        val theme = currentTheme
         val row = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             background = ContextCompat.getDrawable(context, R.drawable.rounded_pill)
@@ -598,6 +988,11 @@ class SavedCardsUI : AppCompatActivity() {
                 setPadding(4.dpToPx(), 4.dpToPx(), 4.dpToPx(), 4.dpToPx())
                 setImageResource(iconResId)
             }
+            // Keep icon legible on different themes
+            theme?.let { t ->
+                iconView.backgroundTintList = ColorStateList.valueOf(t.headerColor)
+                iconView.imageTintList = ColorStateList.valueOf(Color.WHITE)
+            }
             row.addView(iconView)
         }
 
@@ -607,13 +1002,19 @@ class SavedCardsUI : AppCompatActivity() {
             }
             text = value
             textSize = 13f
-            setTextColor(Color.parseColor("#1A1A1A"))
+            setTextColor(theme?.pillTextColor ?: Color.parseColor("#1A1A1A"))
             isClickable = clickable
             isFocusable = clickable
             maxLines = 1
             ellipsize = android.text.TextUtils.TruncateAt.END
         }
         row.addView(valueText)
+
+        theme?.let { t ->
+            row.background?.mutate()?.let { bg ->
+                DrawableCompat.setTint(bg, t.pillBgColor)
+            }
+        }
 
         if (clickable && onClick != null) {
             row.setOnClickListener { onClick.invoke() }

@@ -15,6 +15,17 @@
         android:padding="24dp"
         android:gravity="center">
 
+        <ImageView
+            android:id="@+id/appIcon"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/circle_icon_bg"
+            android:clipToOutline="true"
+            android:contentDescription="App icon"
+            android:scaleType="centerCrop"
+            android:src="@mipmap/ic_launcher" />
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

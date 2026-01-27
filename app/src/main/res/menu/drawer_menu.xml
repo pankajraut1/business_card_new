@@ -11,10 +11,37 @@
         android:title="Auto Sync"
         android:checkable="true"
         android:icon="@android:drawable/ic_popup_sync" />
+    
+    <item
+        android:id="@+id/nav_backup_cards"
+        android:title="Backup Cards"
+        android:icon="@drawable/ic_backup" />
+
+    <item
+        android:id="@+id/nav_restore_cards"
+        android:title="Restore Cards"
+        android:icon="@drawable/ic_restore" />
+
+    <item
+        android:id="@+id/nav_theme"
+        android:title="Theme"
+        android:icon="@drawable/ic_theme" />
+
+    <item
+        android:id="@+id/nav_customize"
+        android:title="Customize"
+        android:icon="@drawable/ic_customize" />
+
     <item
         android:id="@+id/nav_logout"
         android:title="Logout"
         android:icon="@android:drawable/ic_lock_power_off" />
+
+    <item
+        android:id="@+id/nav_delete_account"
+        android:title="Delete Account"
+        android:icon="@drawable/ic_delete" />
+
     <item
         android:id="@+id/nav_credit"
         android:title="@string/copyright"

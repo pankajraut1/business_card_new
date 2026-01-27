@@ -18,6 +18,7 @@ class EditInfoUI : AppCompatActivity() {
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
     lateinit var submit: Button
+    lateinit var cancel: Button
     lateinit var name: EditText
     lateinit var occ: EditText
     lateinit var email: EditText
@@ -44,6 +45,9 @@ class EditInfoUI : AppCompatActivity() {
             finish()
             return
         }
+
+        // Prevent previous user's cached profile from leaking into this account
+        ProfileStorage(this).ensureForUser(currentUser.uid)
 
         // Instant redirect if we already have cached profile (even when online)
         if (!editMode) {
@@ -187,6 +191,7 @@ class EditInfoUI : AppCompatActivity() {
 
         // Initialize views
         submit = findViewById(R.id.submit)
+        cancel = findViewById(R.id.cancel)
         name = findViewById(R.id.name)
         occ = findViewById(R.id.occupation)
         email = findViewById(R.id.email)
@@ -200,6 +205,29 @@ class EditInfoUI : AppCompatActivity() {
         currentUser?.email?.let {
             email.setText(it)
             email.isEnabled = false // Prevent editing the email
+        }
+
+        cancel.setOnClickListener {
+            val cached = ProfileStorage(this).getProfile()
+            val nameStr = (cached[ProfileStorage.KEY_NAME] ?: name.text?.toString().orEmpty()).toString()
+            val occStr = (cached[ProfileStorage.KEY_OCCUPATION] ?: occ.text?.toString().orEmpty()).toString()
+            val emailStr = (cached[ProfileStorage.KEY_EMAIL]
+                ?: (auth.currentUser?.email ?: email.text?.toString().orEmpty())).toString()
+            val phoneStr = (cached[ProfileStorage.KEY_PHONE] ?: phone.text?.toString().orEmpty()).toString()
+            val instagramStr = (cached[ProfileStorage.KEY_INSTAGRAM] ?: instagram.text?.toString().orEmpty()).toString()
+            val websiteStr = (cached[ProfileStorage.KEY_WEBSITE] ?: website.text?.toString().orEmpty()).toString()
+            val addressStr = (cached[ProfileStorage.KEY_ADDRESS] ?: address.text?.toString().orEmpty()).toString()
+
+            val intent = Intent(this, BusinessCardUI::class.java)
+            intent.putExtra("Name", nameStr)
+            intent.putExtra("Occupation", occStr)
+            intent.putExtra("Email", emailStr)
+            intent.putExtra("Phone", phoneStr)
+            intent.putExtra("Instagram", instagramStr)
+            intent.putExtra("Website", websiteStr)
+            intent.putExtra("Address", addressStr)
+            startActivity(intent)
+            finish()
         }
 
         submit.setOnClickListener {
@@ -235,8 +263,11 @@ class EditInfoUI : AppCompatActivity() {
                     .show()
                 return@setOnClickListener
             }
-            if (!phoneStr.matches(Regex("^\\d{10}$"))) {
-                Toast.makeText(this, "Enter a valid 10-digit phone number", Toast.LENGTH_SHORT)
+            // Allow international numbers (e.g. +91XXXXXXXXXX). Keep validation lenient but sane.
+            val phoneDigits = phoneStr.filter { it.isDigit() }
+            val phoneValid = phoneDigits.length in 7..15 && phoneStr.trim().matches(Regex("^\\+?[- ()0-9]+$"))
+            if (!phoneValid) {
+                Toast.makeText(this, "Enter a valid phone number", Toast.LENGTH_SHORT)
                     .show()
                 return@setOnClickListener
             }

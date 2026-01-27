@@ -10,6 +10,7 @@
 
     <!-- Main content -->
     <LinearLayout
+        android:id="@+id/mainRoot"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
@@ -21,26 +22,83 @@
             android:layout_weight="1"
             android:fillViewport="true"
             android:clipToPadding="false"
-            android:paddingBottom="96dp">
+            android:paddingBottom="0dp">
 
             <LinearLayout
                 android:id="@+id/main"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:orientation="vertical">
 
                 <!-- Sharable section: header + contact rows (excludes bottom actions) -->
                 <LinearLayout
                     android:id="@+id/shareContainer"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
                     android:orientation="vertical">
 
                 <!-- Curved red header with hamburger and centered name/occupation -->
                 <RelativeLayout
+                    android:id="@+id/headerContainer"
                     android:layout_width="match_parent"
                     android:layout_height="260dp"
                     android:background="@drawable/header_wave">
+
+                    <ImageView
+                        android:id="@+id/decorTriangles"
+                        android:layout_width="110dp"
+                        android:layout_height="28dp"
+                        android:layout_alignParentStart="true"
+                        android:layout_marginStart="14dp"
+                        android:layout_marginTop="18dp"
+                        android:src="@drawable/decor_triangles"
+                        android:clickable="false"
+                        android:focusable="false" />
+
+                    <ImageView
+                        android:id="@+id/decorDots"
+                        android:layout_width="160dp"
+                        android:layout_height="80dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_marginEnd="14dp"
+                        android:layout_marginTop="32dp"
+                        android:src="@drawable/decor_dots"
+                        android:clickable="false"
+                        android:focusable="false" />
+
+                    <ImageView
+                        android:id="@+id/decorZigzag"
+                        android:layout_width="120dp"
+                        android:layout_height="36dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_marginEnd="18dp"
+                        android:layout_marginTop="18dp"
+                        android:src="@drawable/decor_zigzag"
+                        android:clickable="false"
+                        android:focusable="false" />
+
+                    <ImageView
+                        android:id="@+id/decorArcLeft"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:layout_alignParentStart="true"
+                        android:layout_marginStart="18dp"
+                        android:layout_marginTop="96dp"
+                        android:src="@drawable/decor_arc"
+                        android:clickable="false"
+                        android:focusable="false" />
+
+                    <ImageView
+                        android:id="@+id/decorArcRight"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_marginEnd="18dp"
+                        android:layout_marginTop="132dp"
+                        android:rotation="180"
+                        android:src="@drawable/decor_arc"
+                        android:clickable="false"
+                        android:focusable="false" />
 
                     <ImageButton
                         android:id="@+id/menuButton"
@@ -65,7 +123,7 @@
                             android:layout_height="wrap_content"
                             android:text="Name"
                             android:textColor="@color/white"
-                            android:textSize="28sp"
+                            android:textSize="30sp"
                             android:textStyle="bold" />
 
                         <TextView
@@ -81,176 +139,221 @@
                 </RelativeLayout>
 
                 <!-- Contact rows -->
-                <LinearLayout
-                    android:id="@+id/card"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:layout_marginEnd="16dp"
-                    android:layout_marginTop="-28dp"
-                    android:layout_marginBottom="12dp"
-                    android:orientation="vertical">
-
-                    <!-- Phone -->
-                    <LinearLayout
-                        android:id="@+id/phoneRow"
+                    <FrameLayout
+                        android:id="@+id/card"
                         android:layout_width="match_parent"
-                        android:layout_height="54dp"
-                        android:layout_marginTop="12dp"
-                        android:background="@drawable/rounded_pill"
-                        android:gravity="center_vertical"
-                        android:paddingStart="10dp"
-                        android:paddingEnd="12dp">
+                        android:layout_height="428dp"
+                        android:layout_marginStart="16dp"
+                        android:layout_marginTop="-150dp"
+                        android:layout_marginEnd="16dp"
+                        android:layout_marginBottom="12dp"
+                        android:layout_weight="1"
+                        android:clipToPadding="false">
 
                         <ImageView
-                            android:layout_width="36dp"
-                            android:layout_height="36dp"
-                            android:background="@drawable/circle_icon_bg"
-                            android:padding="6dp"
-                            android:src="@drawable/ic_phone" />
-
-                        <TextView
-                            android:id="@+id/phoneno"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginStart="12dp"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:text="phone no"
-                            android:textColor="#1A1A1A"
-                            android:textSize="16sp" />
-                    </LinearLayout>
-
-                    <!-- Address -->
-                    <LinearLayout
-                        android:id="@+id/addressRow"
-                        android:layout_width="match_parent"
-                        android:layout_height="54dp"
-                        android:layout_marginTop="12dp"
-                        android:background="@drawable/rounded_pill"
-                        android:gravity="center_vertical"
-                        android:paddingStart="10dp"
-                        android:paddingEnd="12dp">
+                            android:id="@+id/cardDecorDots"
+                            android:layout_width="160dp"
+                            android:layout_height="120dp"
+                            android:layout_gravity="end|center_vertical"
+                            android:layout_marginEnd="-6dp"
+                            android:src="@drawable/decor_dots_gray"
+                            android:alpha="0.9"
+                            android:clickable="false"
+                            android:focusable="false" />
 
                         <ImageView
-                            android:layout_width="36dp"
+                            android:id="@+id/cardDecorZigzag"
+                            android:layout_width="120dp"
                             android:layout_height="36dp"
-                            android:background="@drawable/circle_icon_bg"
-                            android:padding="6dp"
-                            android:src="@drawable/ic_address" />
+                            android:layout_gravity="start|bottom"
+                            android:layout_marginStart="10dp"
+                            android:layout_marginBottom="10dp"
+                            android:src="@drawable/decor_zigzag_gray"
+                            android:alpha="0.7"
+                            android:clickable="false"
+                            android:focusable="false" />
 
-                        <TextView
-                            android:id="@+id/address"
-                            android:layout_width="0dp"
+                        <LinearLayout
+                            android:id="@+id/cardContent"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginStart="12dp"
-                            android:text="Address"
-                            android:textColor="#1A1A1A"
-                            android:textSize="16sp" />
-                    </LinearLayout>
+                            android:layout_marginTop="150dp"
+                            android:gravity="center_vertical"
+                            android:orientation="vertical">
 
-                    <!-- Email -->
-                    <LinearLayout
-                        android:id="@+id/emailRow"
-                        android:layout_width="match_parent"
-                        android:layout_height="54dp"
-                        android:layout_marginTop="12dp"
-                        android:background="@drawable/rounded_pill"
-                        android:gravity="center_vertical"
-                        android:paddingStart="10dp"
-                        android:paddingEnd="12dp">
+                            <!-- Phone -->
+                            <LinearLayout
+                                android:id="@+id/phoneRow"
+                                android:layout_width="match_parent"
+                                android:layout_height="54dp"
+                                android:layout_marginTop="200dp"
+                                android:background="@drawable/rounded_pill"
+                                android:gravity="center_vertical"
+                                android:paddingStart="5dp"
+                                android:paddingEnd="12dp">
 
-                        <ImageView
-                            android:layout_width="36dp"
-                            android:layout_height="36dp"
-                            android:background="@drawable/circle_icon_bg"
-                            android:padding="6dp"
-                            android:src="@drawable/ic_email" />
+                                <ImageView
+                                    android:id="@+id/phoneIcon"
+                                    android:layout_width="47dp"
+                                    android:layout_height="47dp"
+                                    android:background="@drawable/circle_icon_bg"
+                                    android:padding="8dp"
+                                    android:src="@drawable/ic_phone" />
 
-                        <TextView
-                            android:id="@+id/email"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginStart="12dp"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:text="email"
-                            android:textColor="#1A1A1A"
-                            android:textSize="16sp" />
-                    </LinearLayout>
+                                <TextView
+                                    android:id="@+id/phoneno"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="12dp"
+                                    android:layout_weight="1"
+                                    android:clickable="true"
+                                    android:focusable="true"
+                                    android:text="phone no"
+                                    android:textColor="#1A1A1A"
+                                    android:textSize="16sp" />
+                            </LinearLayout>
 
-                    <!-- Website -->
-                    <LinearLayout
-                        android:id="@+id/websiteRow"
-                        android:layout_width="match_parent"
-                        android:layout_height="54dp"
-                        android:layout_marginTop="12dp"
-                        android:background="@drawable/rounded_pill"
-                        android:gravity="center_vertical"
-                        android:paddingStart="10dp"
-                        android:paddingEnd="12dp">
+                            <!-- Address -->
+                            <LinearLayout
+                                android:id="@+id/addressRow"
+                                android:layout_width="match_parent"
+                                android:layout_height="54dp"
+                                android:layout_marginTop="36dp"
+                                android:background="@drawable/rounded_pill"
+                                android:gravity="center_vertical"
+                                android:paddingStart="5dp"
+                                android:paddingEnd="12dp">
 
-                        <ImageView
-                            android:layout_width="36dp"
-                            android:layout_height="36dp"
-                            android:background="@drawable/circle_icon_bg"
-                            android:padding="6dp"
-                            android:src="@drawable/ic_website" />
+                                <ImageView
+                                    android:id="@+id/addressIcon"
+                                    android:layout_width="47dp"
+                                    android:layout_height="47dp"
+                                    android:background="@drawable/circle_icon_bg"
+                                    android:padding="7dp"
+                                    android:src="@drawable/ic_address" />
 
-                        <TextView
-                            android:id="@+id/website"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginStart="12dp"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:text="website"
-                            android:textColor="#1A1A1A"
-                            android:textSize="16sp" />
-                    </LinearLayout>
+                                <TextView
+                                    android:id="@+id/address"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="12dp"
+                                    android:layout_weight="1"
+                                    android:text="Address"
+                                    android:textColor="#1A1A1A"
+                                    android:textSize="16sp" />
+                            </LinearLayout>
 
-                    <!-- Instagram -->
-                    <LinearLayout
-                        android:id="@+id/instagramRow"
-                        android:layout_width="match_parent"
-                        android:layout_height="54dp"
-                        android:layout_marginTop="12dp"
-                        android:background="@drawable/rounded_pill"
-                        android:gravity="center_vertical"
-                        android:paddingStart="10dp"
-                        android:paddingEnd="12dp">
+                            <!-- Email -->
+                            <LinearLayout
+                                android:id="@+id/emailRow"
+                                android:layout_width="match_parent"
+                                android:layout_height="54dp"
+                                android:layout_marginTop="36dp"
+                                android:background="@drawable/rounded_pill"
+                                android:gravity="center_vertical"
+                                android:paddingStart="5dp"
+                                android:paddingEnd="12dp">
 
-                        <ImageView
-                            android:layout_width="36dp"
-                            android:layout_height="36dp"
-                            android:background="@drawable/circle_icon_bg"
-                            android:padding="6dp"
-                            android:src="@drawable/ic_instagram" />
+                                <ImageView
+                                    android:id="@+id/emailIcon"
+                                    android:layout_width="47dp"
+                                    android:layout_height="47dp"
+                                    android:background="@drawable/circle_icon_bg"
+                                    android:padding="8dp"
+                                    android:src="@drawable/ic_email" />
 
-                        <TextView
-                            android:id="@+id/instagram"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginStart="12dp"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:text="instagram"
-                            android:textColor="#1A1A1A"
-                            android:textSize="16sp" />
-                    </LinearLayout>
-                </LinearLayout>
+                                <TextView
+                                    android:id="@+id/email"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="12dp"
+                                    android:layout_weight="1"
+                                    android:clickable="true"
+                                    android:focusable="true"
+                                    android:text="email"
+                                    android:textColor="#1A1A1A"
+                                    android:textSize="16sp" />
+                            </LinearLayout>
+
+                            <!-- Website -->
+                            <LinearLayout
+                                android:id="@+id/websiteRow"
+                                android:layout_width="match_parent"
+                                android:layout_height="54dp"
+                                android:layout_marginTop="36dp"
+                                android:background="@drawable/rounded_pill"
+                                android:gravity="center_vertical"
+                                android:paddingStart="5dp"
+                                android:paddingEnd="12dp">
+
+                                <ImageView
+                                    android:id="@+id/websiteIcon"
+                                    android:layout_width="47dp"
+                                    android:layout_height="47dp"
+                                    android:background="@drawable/circle_icon_bg"
+                                    android:padding="8dp"
+                                    android:src="@drawable/ic_website" />
+
+                                <TextView
+                                    android:id="@+id/website"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="12dp"
+                                    android:layout_weight="1"
+                                    android:clickable="true"
+                                    android:focusable="true"
+                                    android:text="website"
+                                    android:textColor="#1A1A1A"
+                                    android:textSize="16sp" />
+                            </LinearLayout>
+
+                            <!-- Instagram -->
+                            <LinearLayout
+                                android:id="@+id/instagramRow"
+                                android:layout_width="match_parent"
+                                android:layout_height="54dp"
+                                android:layout_marginTop="36dp"
+                                android:background="@drawable/rounded_pill"
+                                android:gravity="center_vertical"
+                                android:paddingStart="5dp"
+                                android:paddingEnd="12dp">
+
+                                <ImageView
+                                    android:id="@+id/instagramIcon"
+                                    android:layout_width="47dp"
+                                    android:layout_height="47dp"
+                                    android:background="@drawable/circle_icon_bg"
+                                    android:padding="8dp"
+                                    android:src="@drawable/ic_instagram" />
+
+                                <TextView
+                                    android:id="@+id/instagram"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="12dp"
+                                    android:layout_weight="1"
+                                    android:clickable="true"
+                                    android:focusable="true"
+                                    android:text="instagram"
+                                    android:textColor="#1A1A1A"
+                                    android:textSize="16sp" />
+                            </LinearLayout>
+                        </LinearLayout>
+                    </FrameLayout>
 
                 </LinearLayout> <!-- /shareContainer -->
 
-                
-
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>
+
+        <ImageView
+            android:id="@+id/bottomWaveDivider"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:src="@drawable/bottom_bar_decor"
+            android:scaleType="fitXY"
+            android:rotation="0"
+            android:alpha="1" />
 
         <!-- Sticky bottom action bar with pill grey background -->
         <LinearLayout
@@ -281,6 +384,7 @@
                     android:scaleType="centerInside"
                     android:padding="12dp" />
                 <TextView
+                    android:id="@+id/labelQr"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
@@ -304,6 +408,7 @@
                     android:scaleType="centerInside"
                     android:padding="12dp" />
                 <TextView
+                    android:id="@+id/labelScan"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
@@ -327,6 +432,7 @@
                     android:scaleType="centerInside"
                     android:padding="12dp" />
                 <TextView
+                    android:id="@+id/labelSaved"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
@@ -350,6 +456,7 @@
                     android:scaleType="centerInside"
                     android:padding="12dp" />
                 <TextView
+                    android:id="@+id/labelShare"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
