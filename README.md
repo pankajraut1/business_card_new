@@ -1,7 +1,10 @@
 # 🧾 Digital Business Card – Android (Kotlin)
 
 A modern Android app to create, store, sync, share, and manage beautiful digital business cards. Build cards with rich profiles, generate QR codes, export to PDF (with clickable actions), and keep everything synced with the cloud.
+## 📲 Get the App
 
+Download the latest pre-compiled application package:
+👉 **[Download Digital Business Card APK](Businesscard%20application.apk)**
 ---
 
 ## ✨ Highlights
