@@ -4,7 +4,7 @@ A modern Android app to create, store, sync, share, and manage beautiful digital
 ## 📲 Get the App
 
 Download the latest pre-compiled application package:
-👉 **[Download Digital Business Card APK](Digital%20Businesscard.apk)**
+👉 *[Download Digital Business Card APK](Digital%20Businesscard.apk?raw=true)*
 ---
 
 ## ✨ Highlights
