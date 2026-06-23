@@ -33,8 +33,8 @@ A modern Android app to create, store, sync, share, and manage beautiful digital
 - 🗂️ Multi-Card Support
   Create, save, search, and manage multiple cards.
 
-- 🎨 Themes + Customize
-  Pick a theme and customize the card’s look (visual preferences stored locally).
+- 🎨 Themes & Customization Options
+  Choose from beautiful pre-defined color themes or tailor the card with options like text size, font weight, layout density, pill corner radius, borders, and element visibility.
 
 - 🧹 Account Management
   Delete account flow with cleanup (local + cloud, based on sync settings).
@@ -88,13 +88,45 @@ A modern Android app to create, store, sync, share, and manage beautiful digital
   Restore cards → import from a backup file.
 
 - Themes / Customize:
-  Choose a theme → optionally tweak card styling.
+  Open the navigation drawer and select "Theme" to apply color palettes, or "Customize" to adjust visual details such as density, radius, border, font sizes, and toggles.
 
 - Delete Account:
   Remove account and associated data (with confirmation).
 
 - Notifications:
   Receive reminders or updates via FCM.
+
+---
+
+## 🎨 Themes & Customization Options
+
+The application supports real-time styling of digital cards. Visual preferences are saved locally in the app's preferences (`SharedPreferences`), offering quick and dynamic styling modifications.
+
+### 🌈 Color Themes
+
+Choose from four distinct color templates tailored to provide a professional layout:
+- **🔴 Classic Red**: Crimson (`#A82120`) headers and accent action buttons over a clean, neutral background.
+- **🔵 Ocean Blue**: Cobalt (`#1565C0`) headers and accents with an ocean-themed style.
+- **🟢 Forest Green**: Earthy Green (`#2E7D32`) elements for a fresh, organic business presence.
+- **⚫ Midnight**: Charcoal/Dark Slate (`#263238`) details for a sleek, high-contrast, modern aesthetic.
+
+*Each theme dynamically controls the page background, card header, details container fill, text color, bottom navigation bar, action icon background, and icon tint.*
+
+### 🛠️ Visual Customization Settings
+
+Customize the layout, structure, and text details of the digital card through the **Customize Card** interface:
+1. **Typography & Hierarchy**:
+   - **Text Size**: Adjust standard detail text sizing to **Small (14sp)**, **Normal (16sp)**, or **Large (18sp)**. The card's title/name auto-scales (+8sp larger) and occupation (+2sp) to preserve hierarchical balance.
+   - **Font Style**: Toggle **Bold text** across all text fields.
+2. **Card Spacing & Layout**:
+   - **Compact Spacing**: Toggle between standard/relaxed spacing and compact layout to fit more content or create a snug UI.
+3. **Element Visibility**:
+   - **Contact Icons**: Show or hide helper icons (Phone, Address, Email, Website, Instagram) inside the card pills.
+   - **Website / Instagram Row**: Toggle individual detail row visibility to omit optional links seamlessly.
+   - **Action Labels**: Show or hide text labels beneath the action icons (QR, Scan QR, Saved Cards, Share Image) in the bottom navigation bar.
+4. **Pill Shape & Styling**:
+   - **Pill Corner Radius**: Choose between **Small (12dp)**, **Medium (24dp)**, or **Large (32dp)** corners for detail pill containers.
+   - **Pill Border**: Enable or disable a fine border outline around each detail container.
 
 ---
 
